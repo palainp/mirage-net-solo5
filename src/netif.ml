@@ -47,10 +47,10 @@ external solo5_net_acquire : string -> solo5_result * int64 * solo5_net_info
   = "mirage_solo5_net_acquire"
 
 external solo5_net_read :
-  int64 -> Cstruct.buffer -> int -> int -> solo5_result * int
+  int64 -> bytes -> int -> int -> solo5_result * int
   = "mirage_solo5_net_read_3"
 
-external solo5_net_write : int64 -> Cstruct.buffer -> int -> int -> solo5_result
+external solo5_net_write : int64 -> bytes -> int -> int -> solo5_result
   = "mirage_solo5_net_write_3"
 
 let net_metrics () =
