@@ -69,7 +69,8 @@ mirage_solo5_net_read_3(value v_handle, value v_buf, value v_buf_offset,
     CAMLlocal1(v_result);
     solo5_handle_t handle = Int64_val(v_handle);
     long buf_offset = Long_val(v_buf_offset);
-    uint8_t *buf = (uint8_t *)Caml_ba_data_val(v_buf) + buf_offset;
+    /* Is there a way to assert buf_offset will not overflow? */
+    uint8_t *buf = (uint8_t *)Bytes_val(v_buf) + buf_offset;
     size_t size = Long_val(v_size);
     size_t read_size;
     solo5_result_t result;
@@ -88,7 +89,8 @@ mirage_solo5_net_write_3(value v_handle, value v_buf, value v_buf_offset,
     CAMLparam4(v_handle, v_buf, v_buf_offset, v_size);
     solo5_handle_t handle = Int64_val(v_handle);
     long buf_offset = Long_val(v_buf_offset);
-    const uint8_t *buf = (uint8_t *)Caml_ba_data_val(v_buf) + buf_offset;
+    /* Is there a way to assert buf_offset will not overflow? */
+    const uint8_t *buf = (uint8_t *)Bytes_val(v_buf) + buf_offset;
     size_t size = Long_val(v_size);
     solo5_result_t result;
 

@@ -47,10 +47,10 @@ external solo5_net_acquire : string -> solo5_result * int64 * solo5_net_info
   = "mirage_solo5_net_acquire"
 
 external solo5_net_read :
-  int64 -> Cstruct.buffer -> int -> int -> solo5_result * int
+  int64 -> bytes -> int -> int -> solo5_result * int
   = "mirage_solo5_net_read_3"
 
-external solo5_net_write : int64 -> Cstruct.buffer -> int -> int -> solo5_result
+external solo5_net_write : int64 -> bytes -> int -> int -> solo5_result
   = "mirage_solo5_net_write_3"
 
 let net_metrics () =
@@ -108,13 +108,13 @@ let rec read t buf =
   let process () =
     let r =
       match
-        solo5_net_read t.handle buf.Cstruct.buffer buf.Cstruct.off
-          buf.Cstruct.len
+        solo5_net_read t.handle buf 0 (* Offset is zero *)
+          (Bytes.length buf)
       with
       | SOLO5_R_OK, len ->
           Mirage_net.Stats.rx t.stats (Int64.of_int len);
           Metrics.add t.metrics (fun x -> x t.id) (fun d -> d t.stats);
-          let buf = Cstruct.sub buf 0 len in
+          let buf = Bytes.sub buf 0 len in
           Ok buf
       | SOLO5_R_AGAIN, _ -> Error `Continue
       | SOLO5_R_EINVAL, _ -> Error `Invalid_argument
@@ -137,7 +137,7 @@ let rec read t buf =
 let rec listen t ~header_size fn =
   match t.active with
   | true -> (
-      let buf = Cstruct.create (t.mtu + header_size) in
+      let buf = Bytes.create (t.mtu + header_size) in
       let process () =
         read t buf >|= function
         | Ok buf ->
@@ -152,13 +152,13 @@ let rec listen t ~header_size fn =
       | Error e -> Lwt.return (Error e))
   | false -> Lwt.return (Ok ())
 
-(* Transmit a packet from a Cstruct.t *)
+(* Transmit a packet from a bytes *)
 let write_pure t ~size fill =
-  let buf = Cstruct.create size in
+  let buf = Bytes.create size in
   let len = fill buf in
   if len > size then Error `Invalid_length
   else
-    match solo5_net_write t.handle buf.Cstruct.buffer 0 len with
+    match solo5_net_write t.handle buf 0 len with
     | SOLO5_R_OK ->
         Mirage_net.Stats.tx t.stats (Int64.of_int len);
         Metrics.add t.metrics (fun x -> x t.id) (fun d -> d t.stats);
