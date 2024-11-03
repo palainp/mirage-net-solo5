@@ -141,7 +141,7 @@ let rec listen t ~header_size fn =
       let process () =
         read t buf >|= function
         | Ok buf ->
-            Lwt.async (fun () -> fn buf);
+            Lwt.async (fun () -> fn (Bytes.unsafe_to_string buf));
             Ok ()
         | Error `Canceled -> Error `Disconnected
         | Error `Invalid_argument -> Error `Invalid_argument
